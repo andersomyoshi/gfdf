@@ -31,7 +31,7 @@
             box-shadow: 0 0 100px rgba(0,0,0,0.9);
         }
 
-        #capy-gif { width: 100%; border-radius: 0.5rem; display: block; }
+        #capy-gif { width: 100%; border-radius: 0.5rem; display: block; min-height: 80px; background: #0f172a; }
         .status-label { font-size: 9px; font-weight: 800; margin-top: 6px; text-transform: uppercase; display: block; }
         
         .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background-color: rgba(0, 0, 0, 0.92); display: flex; align-items: center; justify-content: center; z-index: 1000; }
@@ -41,7 +41,7 @@
 <body>
 
     <div id="capybara-gif-container" onclick="toggleCapyPopUp()">
-        <img id="capy-gif" src="" alt="Status">
+        <img id="capy-gif" src="https://raw.githubusercontent.com/andersomyoshi/gfdf/refs/heads/main/img/rico.png" alt="Status">
         <span id="capy-status-text" class="status-label">ANALISANDO</span>
         <span id="capy-target-name" class="text-[9px] text-slate-500 block uppercase">GERAL</span>
     </div>
@@ -85,21 +85,19 @@
                     <form id="add-expense-form" class="space-y-3">
                         <select id="expense-member" class="form-input" required><option value="">Selecione Membro...</option></select>
                         <select id="expense-category" class="form-input" required>
-                    <option value="Casa">Casa</option>
-                    <option value="Transporte">Transporte</option>
-                    <option value="Mercado">Mercado</option>
-                    <option value="Restaurantes/Lanches">Restaurantes/Lanches</option>
-                    <option value="Laser">Laser</option>
-                    <option value="Saúde">Saúde</option>
-                    <option value="Educação">Educação</option>
-                    <option value="Roupas">Roupas</option>
-                    <option value="Pets">Pets</option>
-                    <option value="Dívidas/Empréstimos">Dívidas/Empréstimos</option>
-                    <option value="Assinaturas">Assinaturas</option>
-                    <option value="Games">Games</option>
-                    <option value="Eletronicos">Eletronicos</option>
-                    <option value="Compras Online">Compras Online</option>
-                    <option value="Outros">Outros</option>
+                            <option value="Casa">Casa</option>
+                            <option value="Transporte">Transporte</option>
+                            <option value="Mercado">Mercado</option>
+                            <option value="Restaurantes/Lanches">Restaurantes/Lanches</option>
+                            <option value="Laser">Laser</option>
+                            <option value="Saúde">Saúde</option>
+                            <option value="Educação">Educação</option>
+                            <option value="Roupas">Roupas</option>
+                            <option value="Pets">Pets</option>
+                            <option value="Dívidas/Empréstimos">Dívidas/Empréstimos</option>
+                            <option value="Assinaturas">Assinaturas</option>
+                            <option value="Games">Games</option>
+                            <option value="Outros">Outros</option>
                         </select>
                         <input type="text" id="expense-description" placeholder="Descrição" class="form-input" required>
                         <div class="grid grid-cols-2 gap-2">
@@ -169,11 +167,7 @@
             <h2 class="text-xl font-bold mb-4 text-indigo-400 uppercase tracking-tighter">Editar Lançamento</h2>
             <form id="edit-expense-form" class="space-y-4">
                 <input type="hidden" id="edit-id">
-                
-                <label class="text-[10px] text-slate-400 uppercase font-bold">Membro Responsável</label>
                 <select id="edit-member" class="form-input" required></select>
-
-                <label class="text-[10px] text-slate-400 uppercase font-bold">Categoria</label>
                 <select id="edit-category" class="form-input" required>
                     <option value="Casa">Casa</option>
                     <option value="Transporte">Transporte</option>
@@ -187,25 +181,13 @@
                     <option value="Dívidas/Empréstimos">Dívidas/Empréstimos</option>
                     <option value="Assinaturas">Assinaturas</option>
                     <option value="Games">Games</option>
-                    <option value="Eletronicos">Eletronicos</option>
-                    <option value="Compras Online">Compras Online</option>
                     <option value="Outros">Outros</option>
                 </select>
-
-                <label class="text-[10px] text-slate-400 uppercase font-bold">Descrição</label>
                 <input type="text" id="edit-description" class="form-input" required>
-                
                 <div class="grid grid-cols-2 gap-4">
-                    <div>
-                        <label class="text-[10px] text-slate-400 uppercase font-bold">Valor (R$)</label>
-                        <input type="number" id="edit-value" class="form-input" step="0.01" required>
-                    </div>
-                    <div>
-                        <label class="text-[10px] text-slate-400 uppercase font-bold">Data</label>
-                        <input type="date" id="edit-date" class="form-input" required>
-                    </div>
+                    <input type="number" id="edit-value" class="form-input" step="0.01" required>
+                    <input type="date" id="edit-date" class="form-input" required>
                 </div>
-
                 <div class="flex justify-end gap-3 mt-6">
                     <button type="button" onclick="closeModal('edit-modal')" class="btn bg-slate-700">CANCELAR</button>
                     <button type="submit" class="btn btn-primary">SALVAR</button>
@@ -232,45 +214,63 @@
 
     <script>
         const GIFS = {
-            RICO: "https://lh3.googleusercontent.com/d/1tabvNwA5zt_7DckrbhbakYZX9AZeHvEn",
-            OTIMO: "https://lh3.googleusercontent.com/d/1IWSA7Y63jWsDJUi5krzXvnQyP7N633Kk",
-            SOBRANDO: "https://lh3.googleusercontent.com/d/1wb_OJlIJJOJUB1DkOpPODjtDLTMrI0B_",
-            PREOCUPANTE: "https://lh3.googleusercontent.com/d/1UUU-iAdLxoxjDfrjlQFdv1z-QX09Nk02",
-            CALMA: "https://lh3.googleusercontent.com/d/19UDs-6JIXx-Hdtj2JcweSvQ0pMkCeFZ0",
-            FALIDO: "https://lh3.googleusercontent.com/d/12JvaiggS1uS9ioQGebsaUSSipo6cSXU2"
+            RICO: "https://raw.githubusercontent.com/andersomyoshi/gfdf/refs/heads/main/img/rico.png",
+            OTIMO: "https://raw.githubusercontent.com/andersomyoshi/gfdf/refs/heads/main/img/otimo.png",
+            SOBRANDO: "https://raw.githubusercontent.com/andersomyoshi/gfdf/refs/heads/main/img/sobrando.png",
+            PREOCUPANTE: "https://raw.githubusercontent.com/andersomyoshi/gfdf/refs/heads/main/img/preocupante.png",
+            CALMA: "https://raw.githubusercontent.com/andersomyoshi/gfdf/refs/heads/main/img/calma.png",
+            FALIDO: "https://raw.githubusercontent.com/andersomyoshi/gfdf/refs/heads/main/img/falido.png"
+        };
 
-      };
-        
-        let members = JSON.parse(localStorage.getItem('yoshi_members') || '[]');
-        let expenses = JSON.parse(localStorage.getItem('yoshi_expenses') || '[]');
+        let members = [];
+        let expenses = [];
         let categoryChart = null;
+
+        // Proteção contra erro de Sandbox do LocalStorage
+        try {
+            members = JSON.parse(localStorage.getItem('yoshi_members') || '[]');
+            expenses = JSON.parse(localStorage.getItem('yoshi_expenses') || '[]');
+        } catch (e) {
+            console.warn("LocalStorage inacessível.");
+        }
 
         function updateCapybara(salary, spent, name) {
             const gifContainer = document.getElementById('capybara-gif-container');
             const gif = document.getElementById('capy-gif');
             const txt = document.getElementById('capy-status-text');
             document.getElementById('capy-target-name').textContent = name || "GERAL";
+            
             if (salary === 0) return;
             const pct = ((salary - spent) / salary) * 100;
-            if (pct > 71) { txt.textContent = "RICO"; txt.className = "status-label text-emerald-400"; }
-            else if (pct > 51) { txt.textContent = "ÓTIMO"; txt.className = "status-label text-green-400"; }
-            else if (pct > 15) { txt.textContent = "TÁ SOBRANDO"; txt.className = "status-label text-blue-400"; }
-            else if (pct >= 0) { txt.textContent = "PREOCUPANTE"; txt.className = "status-label text-yellow-500"; }
-            else if (pct > -40) { txt.textContent = "CALMA AE!"; txt.className = "status-label text-orange-500"; }
-            else { txt.textContent = "FALIDO"; txt.className = "status-label text-red-600"; }
+            
+            if (pct > 71) { 
+                txt.textContent = "RICO"; txt.className = "status-label text-emerald-400"; gif.src = GIFS.RICO; 
+            } else if (pct > 51) { 
+                txt.textContent = "ÓTIMO"; txt.className = "status-label text-green-400"; gif.src = GIFS.OTIMO;
+            } else if (pct > 15) { 
+                txt.textContent = "TÁ SOBRANDO"; txt.className = "status-label text-blue-400"; gif.src = GIFS.SOBRANDO;
+            } else if (pct >= 0) { 
+                txt.textContent = "PREOCUPANTE"; txt.className = "status-label text-yellow-500"; gif.src = GIFS.PREOCUPANTE;
+            } else if (pct > -40) { 
+                txt.textContent = "CALMA AE!"; txt.className = "status-label text-orange-500"; gif.src = GIFS.CALMA;
+            } else { 
+                txt.textContent = "FALIDO"; txt.className = "status-label text-red-600"; gif.src = GIFS.FALIDO;
+            }
             
             gifContainer.classList.add('pop-up');
             setTimeout(() => { gifContainer.classList.remove('pop-up'); }, 3000);
         }
 
-        function toggleCapyPopUp() { document.getElementById('capybara-gif-container').classList.toggle('pop-up'); }
+        function toggleCapyPopUp() { 
+            document.getElementById('capybara-gif-container').classList.toggle('pop-up'); 
+        }
 
         function render() {
             const mId = document.getElementById('filter-member').value;
             const mMonth = parseInt(document.getElementById('filter-month').value);
             const mYear = parseInt(document.getElementById('filter-year').value);
 
-            // Renderiza selects
+            // Renderiza listas
             document.getElementById('members-list').innerHTML = '';
             document.getElementById('expense-member').innerHTML = '<option value="">Selecione...</option>';
             document.getElementById('filter-member').innerHTML = '<option value="all">TODOS</option>';
@@ -289,7 +289,6 @@
             });
             document.getElementById('filter-member').value = mId;
 
-            // Filtro e Cálculos
             let filtered = expenses.filter(e => {
                 const d = new Date(e.date + 'T12:00:00');
                 const mObj = members.find(x => x.id === e.memberId);
@@ -313,7 +312,6 @@
                 table.innerHTML += `<tr><td class="p-3 uppercase font-bold text-slate-500">${e.memberName}</td><td class="p-3"><b>${e.description}</b><br><small class="text-indigo-400">${e.category || 'Geral'}</small></td><td class="p-3">${e.date.split('-').reverse().join('/')}</td><td class="p-3 text-right text-red-400">R$ ${e.value.toFixed(2)}</td><td class="p-3 text-center space-x-2"><button onclick="openEditExpense('${e.id}')" class="text-blue-400"><i class="fas fa-edit"></i></button><button onclick="deleteExpense('${e.id}')" class="text-red-400"><i class="fas fa-trash"></i></button></td></tr>`;
             });
 
-            // LÓGICA DE QUANTO SOBRA (RESUMO MENSAL)
             const incomeTotal = mId === 'all' ? members.reduce((a,b)=>a+b.salary,0) : (members.find(x=>x.id===mId)?.salary || 0);
             const balance = incomeTotal - totalSpent;
 
@@ -326,15 +324,18 @@
             updateIndividualAnalysis(individualSpent);
             updateCapybara(incomeTotal, totalSpent, mId === 'all' ? "GERAL" : members.find(x=>x.id===mId)?.name);
             
-            localStorage.setItem('yoshi_members', JSON.stringify(members));
-            localStorage.setItem('yoshi_expenses', JSON.stringify(expenses));
+            try {
+                localStorage.setItem('yoshi_members', JSON.stringify(members));
+                localStorage.setItem('yoshi_expenses', JSON.stringify(expenses));
+            } catch(e) {}
             window.currentView = filtered;
         }
 
         function updateCharts(catTotals, total) {
             if (categoryChart) categoryChart.destroy();
-            const ctx = document.getElementById('categoryChart').getContext('2d');
-            categoryChart = new Chart(ctx, {
+            const canvas = document.getElementById('categoryChart');
+            if (!canvas) return;
+            categoryChart = new Chart(canvas.getContext('2d'), {
                 type: 'doughnut',
                 data: {
                     labels: Object.keys(catTotals),
@@ -359,8 +360,7 @@
 
         window.openEditExpense = (id) => {
             const e = expenses.find(x => x.id === id);
-            const editMemberSelect = document.getElementById('edit-member');
-            editMemberSelect.innerHTML = members.map(m => `<option value="${m.id}" ${m.id === e.memberId ? 'selected' : ''}>${m.name}</option>`).join('');
+            document.getElementById('edit-member').innerHTML = members.map(m => `<option value="${m.id}" ${m.id === e.memberId ? 'selected' : ''}>${m.name}</option>`).join('');
             document.getElementById('edit-id').value = e.id;
             document.getElementById('edit-category').value = e.category || 'Outros';
             document.getElementById('edit-description').value = e.description;
@@ -387,6 +387,7 @@
         document.getElementById('add-expense-form').onsubmit = (e) => {
             e.preventDefault();
             const m = members.find(x => x.id === document.getElementById('expense-member').value);
+            if(!m) return alert("Selecione um membro!");
             const inst = parseInt(document.getElementById('expense-installments').value) || 1;
             const val = parseFloat(document.getElementById('expense-value').value);
             const dateInput = document.getElementById('expense-date').value;
@@ -395,12 +396,10 @@
                 d.setMonth(d.getMonth() + i);
                 expenses.push({
                     id: Date.now().toString() + i, 
-                    memberId: m.id, 
-                    memberName: m.name, 
+                    memberId: m.id, memberName: m.name, 
                     category: document.getElementById('expense-category').value, 
                     description: inst > 1 ? `${document.getElementById('expense-description').value} (${i+1}/${inst})` : document.getElementById('expense-description').value, 
-                    value: val/inst, 
-                    date: d.toISOString().split('T')[0]
+                    value: val/inst, date: d.toISOString().split('T')[0]
                 });
             }
             render(); e.target.reset();
@@ -410,16 +409,9 @@
             e.preventDefault();
             const id = document.getElementById('edit-id').value;
             const idx = expenses.findIndex(x => x.id === id);
-            const newMemberId = document.getElementById('edit-member').value;
-            const memberObj = members.find(m => m.id === newMemberId);
-            expenses[idx].memberId = newMemberId;
-            expenses[idx].memberName = memberObj ? memberObj.name : "Desconhecido";
-            expenses[idx].category = document.getElementById('edit-category').value;
-            expenses[idx].description = document.getElementById('edit-description').value;
-            expenses[idx].value = parseFloat(document.getElementById('edit-value').value);
-            expenses[idx].date = document.getElementById('edit-date').value;
-            render(); 
-            closeModal('edit-modal');
+            const newM = members.find(m => m.id === document.getElementById('edit-member').value);
+            expenses[idx] = {...expenses[idx], memberId: newM.id, memberName: newM.name, category: document.getElementById('edit-category').value, description: document.getElementById('edit-description').value, value: parseFloat(document.getElementById('edit-value').value), date: document.getElementById('edit-date').value};
+            render(); closeModal('edit-modal');
         };
 
         document.getElementById('edit-member-form').onsubmit = (e) => {
@@ -453,19 +445,13 @@
             doc.save("relatorio_financeiro.pdf");
         };
 
+        // Inicialização de filtros
         const now = new Date();
         document.getElementById('filter-month').innerHTML = ["Jan","Fev","Mar","Abr","Mai","Jun","Jul","Ago","Set","Out","Nov","Dez"].map((m, i) => `<option value="${i+1}" ${i+1 === now.getMonth()+1 ? 'selected' : ''}>${m}</option>`).join('');
         document.getElementById('filter-year').innerHTML = [2024, 2025, 2026, 2027].map(y => `<option value="${y}" ${y === now.getFullYear() ? 'selected' : ''}>${y}</option>`).join('');
         [document.getElementById('filter-member'), document.getElementById('filter-month'), document.getElementById('filter-year')].forEach(el => el.onchange = render);
+        
         render();
     </script>
 </body>
 </html>
-
-
-
-
-
-
-
-
