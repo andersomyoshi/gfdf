@@ -85,19 +85,21 @@
                     <form id="add-expense-form" class="space-y-3">
                         <select id="expense-member" class="form-input" required><option value="">Selecione Membro...</option></select>
                         <select id="expense-category" class="form-input" required>
-                            <option value="Casa">Casa</option>
-                            <option value="Transporte">Transporte</option>
-                            <option value="Mercado">Mercado</option>
-                            <option value="Restaurantes/Lanches">Restaurantes/Lanches</option>
-                            <option value="Laser">Laser</option>
-                            <option value="Saúde">Saúde</option>
-                            <option value="Educação">Educação</option>
-                            <option value="Roupas">Roupas</option>
-                            <option value="Pets">Pets</option>
-                            <option value="Dívidas/Empréstimos">Dívidas/Empréstimos</option>
-                            <option value="Assinaturas">Assinaturas</option>
-                            <option value="Games">Games</option>
-                            <option value="Outros">Outros</option>
+                    <option value="Casa">Casa</option>
+                    <option value="Transporte">Transporte</option>
+                    <option value="Mercado">Mercado</option>
+                    <option value="Restaurantes/Lanches">Restaurantes/Lanches</option>
+                    <option value="Laser">Laser</option>
+                    <option value="Saúde">Saúde</option>
+                    <option value="Educação">Educação</option>
+                    <option value="Roupas">Roupas</option>
+                    <option value="Pets">Pets</option>
+                    <option value="Dívidas/Empréstimos">Dívidas/Empréstimos</option>
+                    <option value="Assinaturas">Assinaturas</option>
+                    <option value="Games">Games</option>
+                    <option value="Eletronicos">Eletronicos</option>
+                    <option value="Compras Online">Compras Online</option>
+                    <option value="Outros">Outros</option>
                         </select>
                         <input type="text" id="expense-description" placeholder="Descrição" class="form-input" required>
                         <div class="grid grid-cols-2 gap-2">
@@ -230,13 +232,12 @@
 
     <script>
         const GIFS = {
-            RICO: "/blob/main/Imagem/RICO.png",
-            OTIMO: "/blob/main/Imagem/OTIMO.png",
-            SOBRANDO: "/blob/main/Imagem/SOBRANDO.png",
-            PREOCUPANTE: "/blob/main/Imagem/PREUCUPANTE.png",
-            CALMA: "/blob/main/Imagem/CALMA.png",
-            FALIDO: "/blob/main/Imagem/FALIDO.png"
-        };
+            RICO: "Imagem/RICO.png",
+            OTIMO: "Imagem/OTIMO.png",
+            SOBRANDO: "Imagem/SOBRANDO.png",
+            PREOCUPANTE: "Imagem/PREUCUPANTE.png",
+            CALMA: "Imagem/CALMA.png",
+            FALIDO: "Imagem/FALIDO.png
 
         let members = JSON.parse(localStorage.getItem('yoshi_members') || '[]');
         let expenses = JSON.parse(localStorage.getItem('yoshi_expenses') || '[]');
@@ -458,5 +459,6 @@
     </script>
 </body>
 </html>
+
 
 
