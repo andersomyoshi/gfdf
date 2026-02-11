@@ -52,6 +52,21 @@
             <p class="text-indigo-400 text-sm italic">Gestão By: An.Yoshi 2026</p>
         </header>
 
+        <section class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+            <div class="card p-4 border-l-4 border-emerald-500">
+                <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Renda Disponível</p>
+                <h3 id="summary-income" class="text-2xl font-black text-emerald-400">R$ 0,00</h3>
+            </div>
+            <div class="card p-4 border-l-4 border-red-500">
+                <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Gasto Total</p>
+                <h3 id="summary-expense" class="text-2xl font-black text-red-400">R$ 0,00</h3>
+            </div>
+            <div class="card p-4 border-l-4 border-indigo-500">
+                <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Saldo (O que sobra)</p>
+                <h3 id="summary-balance" class="text-2xl font-black text-white">R$ 0,00</h3>
+            </div>
+        </section>
+
         <main class="grid grid-cols-1 lg:grid-cols-3 gap-8">
             <div class="lg:col-span-1 space-y-6">
                 <div class="card p-6">
@@ -74,6 +89,7 @@
                             <option value="Transporte">Transporte</option>
                             <option value="Mercado">Mercado</option>
                             <option value="Restaurantes/Lanches">Restaurantes/Lanches</option>
+                            <option value="Laser">Laser</option>
                             <option value="Saúde">Saúde</option>
                             <option value="Educação">Educação</option>
                             <option value="Roupas">Roupas</option>
@@ -151,9 +167,43 @@
             <h2 class="text-xl font-bold mb-4 text-indigo-400 uppercase tracking-tighter">Editar Lançamento</h2>
             <form id="edit-expense-form" class="space-y-4">
                 <input type="hidden" id="edit-id">
+                
+                <label class="text-[10px] text-slate-400 uppercase font-bold">Membro Responsável</label>
+                <select id="edit-member" class="form-input" required></select>
+
+                <label class="text-[10px] text-slate-400 uppercase font-bold">Categoria</label>
+                <select id="edit-category" class="form-input" required>
+                    <option value="Casa">Casa</option>
+                    <option value="Transporte">Transporte</option>
+                    <option value="Mercado">Mercado</option>
+                    <option value="Restaurantes/Lanches">Restaurantes/Lanches</option>
+                    <option value="Laser">Laser</option>
+                    <option value="Saúde">Saúde</option>
+                    <option value="Educação">Educação</option>
+                    <option value="Roupas">Roupas</option>
+                    <option value="Pets">Pets</option>
+                    <option value="Dívidas/Empréstimos">Dívidas/Empréstimos</option>
+                    <option value="Assinaturas">Assinaturas</option>
+                    <option value="Games">Games</option>
+                    <option value="Eletronicos">Eletronicos</option>
+                    <option value="Compras Online">Compras Online</option>
+                    <option value="Outros">Outros</option>
+                </select>
+
+                <label class="text-[10px] text-slate-400 uppercase font-bold">Descrição</label>
                 <input type="text" id="edit-description" class="form-input" required>
-                <input type="number" id="edit-value" class="form-input" step="0.01" required>
-                <input type="date" id="edit-date" class="form-input" required>
+                
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="text-[10px] text-slate-400 uppercase font-bold">Valor (R$)</label>
+                        <input type="number" id="edit-value" class="form-input" step="0.01" required>
+                    </div>
+                    <div>
+                        <label class="text-[10px] text-slate-400 uppercase font-bold">Data</label>
+                        <input type="date" id="edit-date" class="form-input" required>
+                    </div>
+                </div>
+
                 <div class="flex justify-end gap-3 mt-6">
                     <button type="button" onclick="closeModal('edit-modal')" class="btn bg-slate-700">CANCELAR</button>
                     <button type="submit" class="btn btn-primary">SALVAR</button>
@@ -167,9 +217,9 @@
             <h2 class="text-xl font-bold mb-4 text-indigo-400 uppercase tracking-tighter">Editar Membro</h2>
             <form id="edit-member-form" class="space-y-4">
                 <input type="hidden" id="edit-member-id">
-                <input type="text" id="edit-member-name" class="form-input" required>
-                <input type="number" id="edit-member-salary" class="form-input" step="0.01" required>
-                <input type="number" id="edit-member-closing" class="form-input" min="1" max="31">
+                <input type="text" id="edit-member-name" class="form-input" required placeholder="Nome">
+                <input type="number" id="edit-member-salary" class="form-input" step="0.01" required placeholder="Salário">
+                <input type="number" id="edit-member-closing" class="form-input" min="1" max="31" placeholder="Dia Fechamento">
                 <div class="flex justify-end gap-3 mt-6">
                     <button type="button" onclick="closeModal('edit-member-modal')" class="btn bg-slate-700">CANCELAR</button>
                     <button type="submit" class="btn btn-primary">SALVAR</button>
@@ -197,14 +247,14 @@
             const gif = document.getElementById('capy-gif');
             const txt = document.getElementById('capy-status-text');
             document.getElementById('capy-target-name').textContent = name || "GERAL";
-            if (salary === 0) { gif.src = GIFS.PREOCUPANTE; return; }
+            if (salary === 0) return;
             const pct = ((salary - spent) / salary) * 100;
-            if (pct > 71) { gif.src = GIFS.RICO; txt.textContent = "RICO"; txt.className = "status-label text-emerald-400"; }
-            else if (pct > 51) { gif.src = GIFS.OTIMO; txt.textContent = "ÓTIMO"; txt.className = "status-label text-green-400"; }
-            else if (pct > 15) { gif.src = GIFS.SOBRANDO; txt.textContent = "TÁ SOBRANDO"; txt.className = "status-label text-blue-400"; }
-            else if (pct >= 0) { gif.src = GIFS.PREOCUPANTE; txt.textContent = "PREOCUPANTE"; txt.className = "status-label text-yellow-500"; }
-            else if (pct > -40) { gif.src = GIFS.CALMA; txt.textContent = "CALMA AE!"; txt.className = "status-label text-orange-500"; }
-            else { gif.src = GIFS.FALIDO; txt.textContent = "FALIDO"; txt.className = "status-label text-red-600"; }
+            if (pct > 71) { txt.textContent = "RICO"; txt.className = "status-label text-emerald-400"; }
+            else if (pct > 51) { txt.textContent = "ÓTIMO"; txt.className = "status-label text-green-400"; }
+            else if (pct > 15) { txt.textContent = "TÁ SOBRANDO"; txt.className = "status-label text-blue-400"; }
+            else if (pct >= 0) { txt.textContent = "PREOCUPANTE"; txt.className = "status-label text-yellow-500"; }
+            else if (pct > -40) { txt.textContent = "CALMA AE!"; txt.className = "status-label text-orange-500"; }
+            else { txt.textContent = "FALIDO"; txt.className = "status-label text-red-600"; }
             
             gifContainer.classList.add('pop-up');
             setTimeout(() => { gifContainer.classList.remove('pop-up'); }, 3000);
@@ -217,10 +267,11 @@
             const mMonth = parseInt(document.getElementById('filter-month').value);
             const mYear = parseInt(document.getElementById('filter-year').value);
 
-            // Atualiza Listas
+            // Renderiza selects
             document.getElementById('members-list').innerHTML = '';
             document.getElementById('expense-member').innerHTML = '<option value="">Selecione...</option>';
             document.getElementById('filter-member').innerHTML = '<option value="all">TODOS</option>';
+            
             members.forEach(m => {
                 document.getElementById('members-list').innerHTML += `
                     <div class="bg-slate-800 p-2 rounded flex justify-between items-center text-[10px] border-l-2 border-indigo-500">
@@ -235,7 +286,7 @@
             });
             document.getElementById('filter-member').value = mId;
 
-            // Filtro por Fatura (Dia 5 a 4)
+            // Filtro e Cálculos
             let filtered = expenses.filter(e => {
                 const d = new Date(e.date + 'T12:00:00');
                 const mObj = members.find(x => x.id === e.memberId);
@@ -259,12 +310,18 @@
                 table.innerHTML += `<tr><td class="p-3 uppercase font-bold text-slate-500">${e.memberName}</td><td class="p-3"><b>${e.description}</b><br><small class="text-indigo-400">${e.category || 'Geral'}</small></td><td class="p-3">${e.date.split('-').reverse().join('/')}</td><td class="p-3 text-right text-red-400">R$ ${e.value.toFixed(2)}</td><td class="p-3 text-center space-x-2"><button onclick="openEditExpense('${e.id}')" class="text-blue-400"><i class="fas fa-edit"></i></button><button onclick="deleteExpense('${e.id}')" class="text-red-400"><i class="fas fa-trash"></i></button></td></tr>`;
             });
 
-            // Atualiza Gráfico e Análise Individual
+            // LÓGICA DE QUANTO SOBRA (RESUMO MENSAL)
+            const incomeTotal = mId === 'all' ? members.reduce((a,b)=>a+b.salary,0) : (members.find(x=>x.id===mId)?.salary || 0);
+            const balance = incomeTotal - totalSpent;
+
+            document.getElementById('summary-income').textContent = `R$ ${incomeTotal.toLocaleString('pt-BR', {minimumFractionDigits: 2})}`;
+            document.getElementById('summary-expense').textContent = `R$ ${totalSpent.toLocaleString('pt-BR', {minimumFractionDigits: 2})}`;
+            document.getElementById('summary-balance').textContent = `R$ ${balance.toLocaleString('pt-BR', {minimumFractionDigits: 2})}`;
+            document.getElementById('summary-balance').className = `text-2xl font-black ${balance >= 0 ? 'text-blue-400' : 'text-red-500'}`;
+
             updateCharts(catTotals, totalSpent);
             updateIndividualAnalysis(individualSpent);
-
-            const salary = mId === 'all' ? members.reduce((a,b)=>a+b.salary,0) : (members.find(x=>x.id===mId)?.salary || 0);
-            updateCapybara(salary, totalSpent, mId === 'all' ? "GERAL" : members.find(x=>x.id===mId)?.name);
+            updateCapybara(incomeTotal, totalSpent, mId === 'all' ? "GERAL" : members.find(x=>x.id===mId)?.name);
             
             localStorage.setItem('yoshi_members', JSON.stringify(members));
             localStorage.setItem('yoshi_expenses', JSON.stringify(expenses));
@@ -295,16 +352,20 @@
             });
         }
 
-        // Funções de Modal e Edição
         window.closeModal = (id) => document.getElementById(id).classList.add('hidden');
+
         window.openEditExpense = (id) => {
             const e = expenses.find(x => x.id === id);
+            const editMemberSelect = document.getElementById('edit-member');
+            editMemberSelect.innerHTML = members.map(m => `<option value="${m.id}" ${m.id === e.memberId ? 'selected' : ''}>${m.name}</option>`).join('');
             document.getElementById('edit-id').value = e.id;
+            document.getElementById('edit-category').value = e.category || 'Outros';
             document.getElementById('edit-description').value = e.description;
             document.getElementById('edit-value').value = e.value;
             document.getElementById('edit-date').value = e.date;
             document.getElementById('edit-modal').classList.remove('hidden');
         };
+
         window.openEditMember = (id) => {
             const m = members.find(x => x.id === id);
             document.getElementById('edit-member-id').value = m.id;
@@ -314,7 +375,6 @@
             document.getElementById('edit-member-modal').classList.remove('hidden');
         };
 
-        // Eventos
         document.getElementById('add-member-form').onsubmit = (e) => {
             e.preventDefault();
             members.push({id: Date.now().toString(), name: document.getElementById('member-name').value, salary: parseFloat(document.getElementById('member-salary').value), closingDay: document.getElementById('member-closing-day').value});
@@ -326,10 +386,19 @@
             const m = members.find(x => x.id === document.getElementById('expense-member').value);
             const inst = parseInt(document.getElementById('expense-installments').value) || 1;
             const val = parseFloat(document.getElementById('expense-value').value);
-            const date = new Date(document.getElementById('expense-date').value + 'T12:00:00');
+            const dateInput = document.getElementById('expense-date').value;
             for(let i=0; i<inst; i++) {
-                const d = new Date(date); d.setMonth(d.getMonth() + i);
-                expenses.push({id: Date.now().toString() + i, memberId: m.id, memberName: m.name, category: document.getElementById('expense-category').value, description: inst > 1 ? `${document.getElementById('expense-description').value} (${i+1}/${inst})` : document.getElementById('expense-description').value, value: val/inst, date: d.toISOString().split('T')[0]});
+                const d = new Date(dateInput + 'T12:00:00');
+                d.setMonth(d.getMonth() + i);
+                expenses.push({
+                    id: Date.now().toString() + i, 
+                    memberId: m.id, 
+                    memberName: m.name, 
+                    category: document.getElementById('expense-category').value, 
+                    description: inst > 1 ? `${document.getElementById('expense-description').value} (${i+1}/${inst})` : document.getElementById('expense-description').value, 
+                    value: val/inst, 
+                    date: d.toISOString().split('T')[0]
+                });
             }
             render(); e.target.reset();
         };
@@ -337,11 +406,17 @@
         document.getElementById('edit-expense-form').onsubmit = (e) => {
             e.preventDefault();
             const id = document.getElementById('edit-id').value;
-            const i = expenses.findIndex(x => x.id === id);
-            expenses[i].description = document.getElementById('edit-description').value;
-            expenses[i].value = parseFloat(document.getElementById('edit-value').value);
-            expenses[i].date = document.getElementById('edit-date').value;
-            render(); closeModal('edit-modal');
+            const idx = expenses.findIndex(x => x.id === id);
+            const newMemberId = document.getElementById('edit-member').value;
+            const memberObj = members.find(m => m.id === newMemberId);
+            expenses[idx].memberId = newMemberId;
+            expenses[idx].memberName = memberObj ? memberObj.name : "Desconhecido";
+            expenses[idx].category = document.getElementById('edit-category').value;
+            expenses[idx].description = document.getElementById('edit-description').value;
+            expenses[idx].value = parseFloat(document.getElementById('edit-value').value);
+            expenses[idx].date = document.getElementById('edit-date').value;
+            render(); 
+            closeModal('edit-modal');
         };
 
         document.getElementById('edit-member-form').onsubmit = (e) => {
@@ -358,7 +433,6 @@
         window.deleteExpense = (id) => { if(confirm("Excluir?")) { expenses = expenses.filter(x => x.id !== id); render(); } };
         window.deleteMember = (id) => { if(confirm("Excluir membro e gastos?")) { members = members.filter(x => x.id !== id); expenses = expenses.filter(x => x.memberId !== id); render(); } };
 
-        // Backup e PDF
         window.downloadBackup = () => {
             const blob = new Blob([JSON.stringify({members, expenses})], {type: 'application/json'});
             const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
@@ -376,7 +450,6 @@
             doc.save("relatorio_financeiro.pdf");
         };
 
-        // Inicialização
         const now = new Date();
         document.getElementById('filter-month').innerHTML = ["Jan","Fev","Mar","Abr","Mai","Jun","Jul","Ago","Set","Out","Nov","Dez"].map((m, i) => `<option value="${i+1}" ${i+1 === now.getMonth()+1 ? 'selected' : ''}>${m}</option>`).join('');
         document.getElementById('filter-year').innerHTML = [2024, 2025, 2026, 2027].map(y => `<option value="${y}" ${y === now.getFullYear() ? 'selected' : ''}>${y}</option>`).join('');
@@ -385,4 +458,3 @@
     </script>
 </body>
 </html>
-
