@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Controle de Gastos Familiar - An.Yoshi</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.23/jspdf.plugin.autotable.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap');
+        body { font-family: 'Inter', sans-serif; background-color: #0f172a; color: #f1f5f9; }
+        .card { background-color: #1e293b; border-radius: 1rem; border: 1px solid #334155; }
+        .form-input { width: 100%; padding: 0.75rem; background-color: #0f172a; border: 1px solid #334155; border-radius: 0.5rem; color: white; }
+        .btn { padding: 0.75rem 1.25rem; border-radius: 0.5rem; font-weight: 600; transition: all 0.2s; cursor: pointer; color: white; border: none; }
+        .btn-primary { background-color: #312e81; } 
+        
+        #capybara-gif-container {
+            position: fixed; top: 15px; right: 15px; z-index: 100;
+            background: #1e293b; padding: 8px; border-radius: 1rem;
+            border: 2px solid #4f46e5; text-align: center; width: 120px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+            cursor: pointer; transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        #capybara-gif-container.pop-up {
+            top: 50%; left: 50%; transform: translate(-50%, -50%) scale(2.5);
+            width: 150px; background: rgba(30, 41, 59, 0.95);
+            box-shadow: 0 0 100px rgba(0,0,0,0.9);
+        }
+
+        #capy-gif { width: 100%; border-radius: 0.5rem; display: block; }
+        .status-label { font-size: 9px; font-weight: 800; margin-top: 6px; text-transform: uppercase; display: block; }
+        
+        .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background-color: rgba(0, 0, 0, 0.92); display: flex; align-items: center; justify-content: center; z-index: 1000; }
+        .modal-content { background-color: #1e293b; padding: 2rem; border-radius: 0.75rem; width: 90%; max-width: 500px; border: 1px solid #4f46e5; }
+    </style>
+</head>
+<body>
+
+    <div id="capybara-gif-container" onclick="toggleCapyPopUp()">
+        <img id="capy-gif" src="" alt="Status">
+        <span id="capy-status-text" class="status-label">ANALISANDO</span>
+        <span id="capy-target-name" class="text-[9px] text-slate-500 block uppercase">GERAL</span>
+    </div>
+
+    <div class="container mx-auto p-4 md:p-8 max-w-7xl">
+        <header class="text-center mb-10">
+            <h1 class="text-3xl font-extrabold tracking-tighter text-white uppercase">Controle Financeiro Familiar</h1>
+            <p class="text-indigo-400 text-sm italic">Gestão By: An.Yoshi 2026</p>
+        </header>
+
+        <main class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <div class="lg:col-span-1 space-y-6">
+                <div class="card p-6">
+                    <h2 class="text-lg font-bold mb-4 border-b border-slate-700 pb-2"><i class="fas fa-users mr-2"></i>FAMÍLIA</h2>
+                    <form id="add-member-form" class="space-y-3">
+                        <input type="text" id="member-name" placeholder="Nome" class="form-input" required>
+                        <input type="number" id="member-salary" placeholder="Renda (R$)" class="form-input" step="0.01" required>
+                        <input type="number" id="member-closing-day" placeholder="Dia Fechamento Cartão" class="form-input" min="1" max="31">
+                        <button type="submit" class="btn btn-primary w-full uppercase text-xs tracking-widest">Adicionar Membro</button>
+                    </form>
+                    <div id="members-list" class="mt-4 space-y-2 max-h-48 overflow-y-auto"></div>
+                </div>
+
+                <div class="card p-6">
+                    <h2 class="text-lg font-bold mb-4 border-b border-slate-700 pb-2"><i class="fas fa-receipt mr-2"></i>LANÇAR GASTO</h2>
+                    <form id="add-expense-form" class="space-y-3">
+                        <select id="expense-member" class="form-input" required><option value="">Selecione Membro...</option></select>
+                        <select id="expense-category" class="form-input" required>
+                            <option value="Casa">Casa</option>
+                            <option value="Transporte">Transporte</option>
+                            <option value="Mercado">Mercado</option>
+                            <option value="Restaurantes/Lanches">Restaurantes/Lanches</option>
+                            <option value="Saúde">Saúde</option>
+                            <option value="Educação">Educação</option>
+                            <option value="Roupas">Roupas</option>
+                            <option value="Pets">Pets</option>
+                            <option value="Dívidas/Empréstimos">Dívidas/Empréstimos</option>
+                            <option value="Assinaturas">Assinaturas</option>
+                            <option value="Games">Games</option>
+                            <option value="Outros">Outros</option>
+                        </select>
+                        <input type="text" id="expense-description" placeholder="Descrição" class="form-input" required>
+                        <div class="grid grid-cols-2 gap-2">
+                            <input type="date" id="expense-date" class="form-input" required>
+                            <input type="number" id="expense-installments" placeholder="Parcelas" class="form-input" min="1" value="1">
+                        </div>
+                        <input type="number" id="expense-value" placeholder="Valor Total (R$)" class="form-input" step="0.01" required>
+                        <button type="submit" class="btn w-full bg-emerald-900 hover:bg-emerald-800 uppercase font-bold text-xs">Registrar Gasto</button>
+                    </form>
+                </div>
+            </div>
+
+            <div class="lg:col-span-2 space-y-6">
+                <div class="card p-6">
+                    <div class="grid grid-cols-3 gap-3 mb-6">
+                        <select id="filter-member" class="form-input"><option value="all">TODOS</option></select>
+                        <select id="filter-month" class="form-input"></select>
+                        <select id="filter-year" class="form-input"></select>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                        <div class="bg-slate-900/50 p-4 rounded-xl border border-slate-700">
+                            <h3 class="text-[10px] font-black text-indigo-400 mb-4 tracking-widest uppercase underline">Porcentagem por Subgrupo</h3>
+                            <div class="relative h-[200px]">
+                                <canvas id="categoryChart"></canvas>
+                            </div>
+                        </div>
+                        <div class="bg-slate-900/50 p-4 rounded-xl border border-slate-700">
+                            <h3 class="text-[10px] font-black text-indigo-400 mb-4 tracking-widest uppercase underline">Gastos Individuais</h3>
+                            <div id="individual-analysis" class="space-y-3 mt-2 overflow-y-auto max-h-[160px] pr-2"></div>
+                        </div>
+                    </div>
+
+                    <div class="overflow-x-auto rounded-lg">
+                        <table class="w-full text-left text-xs">
+                            <thead class="bg-slate-800 text-slate-400">
+                                <tr>
+                                    <th class="p-3">MEMBRO</th>
+                                    <th class="p-3">DESCRIÇÃO</th>
+                                    <th class="p-3">DATA</th>
+                                    <th class="p-3 text-right">VALOR</th>
+                                    <th class="p-3 text-center">AÇÕES</th>
+                                </tr>
+                            </thead>
+                            <tbody id="expenses-table-body" class="divide-y divide-slate-800"></tbody>
+                        </table>
+                    </div>
+
+                    <div class="mt-8 pt-6 border-t border-slate-800 flex flex-wrap gap-4 justify-between">
+                        <button onclick="exportFilteredPDF()" class="btn bg-indigo-700 text-xs uppercase font-bold"><i class="fas fa-file-pdf mr-2"></i>Salvar PDF</button>
+                        <div class="flex gap-2">
+                            <button onclick="downloadBackup()" class="btn bg-slate-700 text-xs uppercase">Backup</button>
+                            <label class="btn bg-slate-700 text-xs uppercase cursor-pointer">Restaurar<input type="file" id="restore-input" class="hidden" accept=".json" onchange="restoreBackup(this)"></label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <footer class="mt-16 text-center text-slate-600 border-t border-slate-800 pt-8 pb-10">
+            <p class="font-bold tracking-widest text-xs">By: An.Yoshi 2026</p>
+        </footer>
+    </div>
+
+    <div id="edit-modal" class="modal-overlay hidden">
+        <div class="modal-content">
+            <h2 class="text-xl font-bold mb-4 text-indigo-400 uppercase tracking-tighter">Editar Lançamento</h2>
+            <form id="edit-expense-form" class="space-y-4">
+                <input type="hidden" id="edit-id">
+                <input type="text" id="edit-description" class="form-input" required>
+                <input type="number" id="edit-value" class="form-input" step="0.01" required>
+                <input type="date" id="edit-date" class="form-input" required>
+                <div class="flex justify-end gap-3 mt-6">
+                    <button type="button" onclick="closeModal('edit-modal')" class="btn bg-slate-700">CANCELAR</button>
+                    <button type="submit" class="btn btn-primary">SALVAR</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="edit-member-modal" class="modal-overlay hidden">
+        <div class="modal-content">
+            <h2 class="text-xl font-bold mb-4 text-indigo-400 uppercase tracking-tighter">Editar Membro</h2>
+            <form id="edit-member-form" class="space-y-4">
+                <input type="hidden" id="edit-member-id">
+                <input type="text" id="edit-member-name" class="form-input" required>
+                <input type="number" id="edit-member-salary" class="form-input" step="0.01" required>
+                <input type="number" id="edit-member-closing" class="form-input" min="1" max="31">
+                <div class="flex justify-end gap-3 mt-6">
+                    <button type="button" onclick="closeModal('edit-member-modal')" class="btn bg-slate-700">CANCELAR</button>
+                    <button type="submit" class="btn btn-primary">SALVAR</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        const GIFS = {
+            RICO: "https://lh3.googleusercontent.com/d/1tabvNwA5zt_7DckrbhbakYZX9AZeHvEn",
+            OTIMO: "https://lh3.googleusercontent.com/d/1IWSA7Y63jWsDJUi5krzXvnQyP7N633Kk",
+            SOBRANDO: "https://lh3.googleusercontent.com/d/1wb_OJlIJJOJUB1DkOpPODjtDLTMrI0B_",
+            PREOCUPANTE: "https://drive.google.com/file/d/1UUU-iAdLxoxjDfrjlQFdv1z-QX09Nk02/view?usp=drive_link",
+            CALMA: "https://drive.google.com/file/d/19UDs-6JIXx-Hdtj2JcweSvQ0pMkCeFZ0/view?usp=drive_link",
+            FALIDO: "https://lh3.googleusercontent.com/d/12JvaiggS1uS9ioQGebsaUSSipo6cSXU2"
+        };
+
+        let members = JSON.parse(localStorage.getItem('yoshi_members') || '[]');
+        let expenses = JSON.parse(localStorage.getItem('yoshi_expenses') || '[]');
+        let categoryChart = null;
+
+        function updateCapybara(salary, spent, name) {
+            const gifContainer = document.getElementById('capybara-gif-container');
+            const gif = document.getElementById('capy-gif');
+            const txt = document.getElementById('capy-status-text');
+            document.getElementById('capy-target-name').textContent = name || "GERAL";
+            if (salary === 0) { gif.src = GIFS.PREOCUPANTE; return; }
+            const pct = ((salary - spent) / salary) * 100;
+            if (pct > 71) { gif.src = GIFS.RICO; txt.textContent = "RICO"; txt.className = "status-label text-emerald-400"; }
+            else if (pct > 51) { gif.src = GIFS.OTIMO; txt.textContent = "ÓTIMO"; txt.className = "status-label text-green-400"; }
+            else if (pct > 15) { gif.src = GIFS.SOBRANDO; txt.textContent = "TÁ SOBRANDO"; txt.className = "status-label text-blue-400"; }
+            else if (pct >= 0) { gif.src = GIFS.PREOCUPANTE; txt.textContent = "PREOCUPANTE"; txt.className = "status-label text-yellow-500"; }
+            else if (pct > -40) { gif.src = GIFS.CALMA; txt.textContent = "CALMA AE!"; txt.className = "status-label text-orange-500"; }
+            else { gif.src = GIFS.FALIDO; txt.textContent = "FALIDO"; txt.className = "status-label text-red-600"; }
+            
+            gifContainer.classList.add('pop-up');
+            setTimeout(() => { gifContainer.classList.remove('pop-up'); }, 3000);
+        }
+
+        function toggleCapyPopUp() { document.getElementById('capybara-gif-container').classList.toggle('pop-up'); }
+
+        function render() {
+            const mId = document.getElementById('filter-member').value;
+            const mMonth = parseInt(document.getElementById('filter-month').value);
+            const mYear = parseInt(document.getElementById('filter-year').value);
+
+            // Atualiza Listas
+            document.getElementById('members-list').innerHTML = '';
+            document.getElementById('expense-member').innerHTML = '<option value="">Selecione...</option>';
+            document.getElementById('filter-member').innerHTML = '<option value="all">TODOS</option>';
+            members.forEach(m => {
+                document.getElementById('members-list').innerHTML += `
+                    <div class="bg-slate-800 p-2 rounded flex justify-between items-center text-[10px] border-l-2 border-indigo-500">
+                        <span>${m.name.toUpperCase()} (R$ ${m.salary.toFixed(2)})</span>
+                        <div class="flex gap-2">
+                            <button onclick="openEditMember('${m.id}')" class="text-blue-400"><i class="fas fa-edit"></i></button>
+                            <button onclick="deleteMember('${m.id}')" class="text-red-500"><i class="fas fa-trash"></i></button>
+                        </div>
+                    </div>`;
+                document.getElementById('expense-member').innerHTML += `<option value="${m.id}">${m.name}</option>`;
+                document.getElementById('filter-member').innerHTML += `<option value="${m.id}">${m.name}</option>`;
+            });
+            document.getElementById('filter-member').value = mId;
+
+            // Filtro por Fatura (Dia 5 a 4)
+            let filtered = expenses.filter(e => {
+                const d = new Date(e.date + 'T12:00:00');
+                const mObj = members.find(x => x.id === e.memberId);
+                const dayClose = mObj?.closingDay ? parseInt(mObj.closingDay) : 31;
+                if (mId !== 'all' && e.memberId !== mId) return false;
+                const start = new Date(mYear, mMonth - 2, dayClose + 1);
+                const end = new Date(mYear, mMonth - 1, dayClose, 23, 59, 59);
+                return d >= start && d <= end;
+            });
+
+            const table = document.getElementById('expenses-table-body');
+            table.innerHTML = '';
+            let totalSpent = 0;
+            const catTotals = {};
+            const individualSpent = {};
+
+            filtered.sort((a,b) => new Date(b.date) - new Date(a.date)).forEach(e => {
+                totalSpent += e.value;
+                catTotals[e.category || 'Outros'] = (catTotals[e.category || 'Outros'] || 0) + e.value;
+                individualSpent[e.memberName] = (individualSpent[e.memberName] || 0) + e.value;
+                table.innerHTML += `<tr><td class="p-3 uppercase font-bold text-slate-500">${e.memberName}</td><td class="p-3"><b>${e.description}</b><br><small class="text-indigo-400">${e.category || 'Geral'}</small></td><td class="p-3">${e.date.split('-').reverse().join('/')}</td><td class="p-3 text-right text-red-400">R$ ${e.value.toFixed(2)}</td><td class="p-3 text-center space-x-2"><button onclick="openEditExpense('${e.id}')" class="text-blue-400"><i class="fas fa-edit"></i></button><button onclick="deleteExpense('${e.id}')" class="text-red-400"><i class="fas fa-trash"></i></button></td></tr>`;
+            });
+
+            // Atualiza Gráfico e Análise Individual
+            updateCharts(catTotals, totalSpent);
+            updateIndividualAnalysis(individualSpent);
+
+            const salary = mId === 'all' ? members.reduce((a,b)=>a+b.salary,0) : (members.find(x=>x.id===mId)?.salary || 0);
+            updateCapybara(salary, totalSpent, mId === 'all' ? "GERAL" : members.find(x=>x.id===mId)?.name);
+            
+            localStorage.setItem('yoshi_members', JSON.stringify(members));
+            localStorage.setItem('yoshi_expenses', JSON.stringify(expenses));
+            window.currentView = filtered;
+        }
+
+        function updateCharts(catTotals, total) {
+            if (categoryChart) categoryChart.destroy();
+            const ctx = document.getElementById('categoryChart').getContext('2d');
+            categoryChart = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: Object.keys(catTotals),
+                    datasets: [{
+                        data: Object.values(catTotals),
+                        backgroundColor: ['#6366f1', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#06b6d4']
+                    }]
+                },
+                options: { maintainAspectRatio: false, plugins: { legend: { position: 'right', labels: { color: '#94a3b8', font: { size: 9 } } } } }
+            });
+        }
+
+        function updateIndividualAnalysis(spent) {
+            const div = document.getElementById('individual-analysis');
+            div.innerHTML = '';
+            Object.keys(spent).forEach(name => {
+                div.innerHTML += `<div class="flex justify-between text-[10px] uppercase font-bold border-b border-slate-800 pb-1"><span>${name}</span><span class="text-red-400">R$ ${spent[name].toFixed(2)}</span></div>`;
+            });
+        }
+
+        // Funções de Modal e Edição
+        window.closeModal = (id) => document.getElementById(id).classList.add('hidden');
+        window.openEditExpense = (id) => {
+            const e = expenses.find(x => x.id === id);
+            document.getElementById('edit-id').value = e.id;
+            document.getElementById('edit-description').value = e.description;
+            document.getElementById('edit-value').value = e.value;
+            document.getElementById('edit-date').value = e.date;
+            document.getElementById('edit-modal').classList.remove('hidden');
+        };
+        window.openEditMember = (id) => {
+            const m = members.find(x => x.id === id);
+            document.getElementById('edit-member-id').value = m.id;
+            document.getElementById('edit-member-name').value = m.name;
+            document.getElementById('edit-member-salary').value = m.salary;
+            document.getElementById('edit-member-closing').value = m.closingDay || '';
+            document.getElementById('edit-member-modal').classList.remove('hidden');
+        };
+
+        // Eventos
+        document.getElementById('add-member-form').onsubmit = (e) => {
+            e.preventDefault();
+            members.push({id: Date.now().toString(), name: document.getElementById('member-name').value, salary: parseFloat(document.getElementById('member-salary').value), closingDay: document.getElementById('member-closing-day').value});
+            render(); e.target.reset();
+        };
+
+        document.getElementById('add-expense-form').onsubmit = (e) => {
+            e.preventDefault();
+            const m = members.find(x => x.id === document.getElementById('expense-member').value);
+            const inst = parseInt(document.getElementById('expense-installments').value) || 1;
+            const val = parseFloat(document.getElementById('expense-value').value);
+            const date = new Date(document.getElementById('expense-date').value + 'T12:00:00');
+            for(let i=0; i<inst; i++) {
+                const d = new Date(date); d.setMonth(d.getMonth() + i);
+                expenses.push({id: Date.now().toString() + i, memberId: m.id, memberName: m.name, category: document.getElementById('expense-category').value, description: inst > 1 ? `${document.getElementById('expense-description').value} (${i+1}/${inst})` : document.getElementById('expense-description').value, value: val/inst, date: d.toISOString().split('T')[0]});
+            }
+            render(); e.target.reset();
+        };
+
+        document.getElementById('edit-expense-form').onsubmit = (e) => {
+            e.preventDefault();
+            const id = document.getElementById('edit-id').value;
+            const i = expenses.findIndex(x => x.id === id);
+            expenses[i].description = document.getElementById('edit-description').value;
+            expenses[i].value = parseFloat(document.getElementById('edit-value').value);
+            expenses[i].date = document.getElementById('edit-date').value;
+            render(); closeModal('edit-modal');
+        };
+
+        document.getElementById('edit-member-form').onsubmit = (e) => {
+            e.preventDefault();
+            const id = document.getElementById('edit-member-id').value;
+            const i = members.findIndex(x => x.id === id);
+            members[i].name = document.getElementById('edit-member-name').value;
+            members[i].salary = parseFloat(document.getElementById('edit-member-salary').value);
+            members[i].closingDay = document.getElementById('edit-member-closing').value;
+            expenses.forEach(ex => { if(ex.memberId === id) ex.memberName = members[i].name; });
+            render(); closeModal('edit-member-modal');
+        };
+
+        window.deleteExpense = (id) => { if(confirm("Excluir?")) { expenses = expenses.filter(x => x.id !== id); render(); } };
+        window.deleteMember = (id) => { if(confirm("Excluir membro e gastos?")) { members = members.filter(x => x.id !== id); expenses = expenses.filter(x => x.memberId !== id); render(); } };
+
+        // Backup e PDF
+        window.downloadBackup = () => {
+            const blob = new Blob([JSON.stringify({members, expenses})], {type: 'application/json'});
+            const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
+            a.download = `backup_${new Date().toISOString().split('T')[0]}.json`; a.click();
+        };
+        window.restoreBackup = (input) => {
+            const reader = new FileReader();
+            reader.onload = (e) => { const d = JSON.parse(e.target.result); members = d.members; expenses = d.expenses; render(); };
+            reader.readAsText(input.files[0]);
+        };
+        window.exportFilteredPDF = () => {
+            const { jsPDF } = window.jspdf; const doc = new jsPDF();
+            doc.text(`Relatorio Financeiro - An.Yoshi 2026`, 14, 15);
+            doc.autoTable({ head: [['Membro', 'Descricao', 'Data', 'Valor']], body: window.currentView.map(e => [e.memberName, e.description, e.date.split('-').reverse().join('/'), `R$ ${e.value.toFixed(2)}`]), startY: 20 });
+            doc.save("relatorio_financeiro.pdf");
+        };
+
+        // Inicialização
+        const now = new Date();
+        document.getElementById('filter-month').innerHTML = ["Jan","Fev","Mar","Abr","Mai","Jun","Jul","Ago","Set","Out","Nov","Dez"].map((m, i) => `<option value="${i+1}" ${i+1 === now.getMonth()+1 ? 'selected' : ''}>${m}</option>`).join('');
+        document.getElementById('filter-year').innerHTML = [2024, 2025, 2026, 2027].map(y => `<option value="${y}" ${y === now.getFullYear() ? 'selected' : ''}>${y}</option>`).join('');
+        [document.getElementById('filter-member'), document.getElementById('filter-month'), document.getElementById('filter-year')].forEach(el => el.onchange = render);
+        render();
+    </script>
+</body>
+</html>
