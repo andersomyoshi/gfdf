@@ -53,9 +53,15 @@
         </header>
 
         <section class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-            <div class="card p-4 border-l-4 border-emerald-500">
+            <div class="card p-4 border-l-4 border-emerald-500 relative">
                 <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Renda Disponível</p>
-                <h3 id="summary-income" class="text-2xl font-black text-emerald-400">R$ 0,00</h3>
+                <div class="flex items-center gap-2">
+                    <h3 id="summary-income" class="text-2xl font-black text-emerald-400">R$ 0,00</h3>
+                    <button id="edit-income-btn" onclick="openIncomeAdjustment()" class="text-slate-500 hover:text-white transition-colors text-xs hidden">
+                        <i class="fas fa-edit"></i>
+                    </button>
+                </div>
+                <p id="income-status-label" class="text-[9px] text-slate-500 mt-1 uppercase font-bold"></p>
             </div>
             <div class="card p-4 border-l-4 border-red-500">
                 <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Gasto Total</p>
@@ -73,7 +79,7 @@
                     <h2 class="text-lg font-bold mb-4 border-b border-slate-700 pb-2"><i class="fas fa-users mr-2"></i>FAMÍLIA</h2>
                     <form id="add-member-form" class="space-y-3">
                         <input type="text" id="member-name" placeholder="Nome" class="form-input" required>
-                        <input type="number" id="member-salary" placeholder="Renda (R$)" class="form-input" step="0.01" required>
+                        <input type="number" id="member-salary" placeholder="Renda Base (R$)" class="form-input" step="0.01" required>
                         <input type="number" id="member-closing-day" placeholder="Dia Fechamento Cartão" class="form-input" min="1" max="31">
                         <button type="submit" class="btn btn-primary w-full uppercase text-xs tracking-widest">Adicionar Membro</button>
                     </form>
@@ -100,7 +106,6 @@
                              <option value="Eletronicos">Eletronicos</option>
                              <option value="Compras Online">Compras Online</option>
                              <option value="Outros">Outros</option>
-
                         </select>
                         <input type="text" id="expense-description" placeholder="Descrição" class="form-input" required>
                         <div class="grid grid-cols-2 gap-2">
@@ -165,6 +170,25 @@
         </footer>
     </div>
 
+    <div id="income-modal" class="modal-overlay hidden">
+        <div class="modal-content">
+            <h2 class="text-xl font-bold mb-1 text-emerald-400 uppercase tracking-tighter">Ajustar Renda do Mês</h2>
+            <p id="income-modal-subtitle" class="text-[10px] text-slate-400 mb-6 uppercase"></p>
+            <form id="edit-monthly-income-form" class="space-y-4">
+                <input type="hidden" id="income-adj-member-id">
+                <div class="space-y-1">
+                    <label class="text-[10px] text-slate-400 font-bold">VALOR PARA ESTE MÊS (R$)</label>
+                    <input type="number" id="income-adj-value" class="form-input text-xl font-bold" step="0.01" required>
+                </div>
+                <div class="flex justify-end gap-3 mt-6">
+                    <button type="button" onclick="closeModal('income-modal')" class="btn bg-slate-700">CANCELAR</button>
+                    <button type="submit" class="btn bg-emerald-600">DEFINIR RENDA</button>
+                </div>
+                <p class="text-[9px] text-slate-500 italic text-center">* Isso afetará apenas o mês selecionado no filtro.</p>
+            </form>
+        </div>
+    </div>
+
     <div id="edit-modal" class="modal-overlay hidden">
         <div class="modal-content">
             <h2 class="text-xl font-bold mb-4 text-indigo-400 uppercase tracking-tighter">Editar Lançamento</h2>
@@ -207,7 +231,7 @@
             <form id="edit-member-form" class="space-y-4">
                 <input type="hidden" id="edit-member-id">
                 <input type="text" id="edit-member-name" class="form-input" required placeholder="Nome">
-                <input type="number" id="edit-member-salary" class="form-input" step="0.01" required placeholder="Salário">
+                <input type="number" id="edit-member-salary" class="form-input" step="0.01" required placeholder="Salário Base">
                 <input type="number" id="edit-member-closing" class="form-input" min="1" max="31" placeholder="Dia Fechamento">
                 <div class="flex justify-end gap-3 mt-6">
                     <button type="button" onclick="closeModal('edit-member-modal')" class="btn bg-slate-700">CANCELAR</button>
@@ -231,7 +255,6 @@
         let expenses = [];
         let categoryChart = null;
 
-        // Proteção contra erro de Sandbox do LocalStorage
         try {
             members = JSON.parse(localStorage.getItem('yoshi_members') || '[]');
             expenses = JSON.parse(localStorage.getItem('yoshi_expenses') || '[]');
@@ -270,12 +293,32 @@
             document.getElementById('capybara-gif-container').classList.toggle('pop-up'); 
         }
 
+        function getMemberSalary(member, month, year) {
+            const key = `${year}-${month}`;
+            if (member.monthlySalaries && member.monthlySalaries[key] !== undefined) {
+                return member.monthlySalaries[key];
+            }
+            return member.salary; // Fallback para o base
+        }
+
         function render() {
             const mId = document.getElementById('filter-member').value;
             const mMonth = parseInt(document.getElementById('filter-month').value);
             const mYear = parseInt(document.getElementById('filter-year').value);
 
-            // Renderiza listas
+            // Interface de Edição de Renda
+            const editBtn = document.getElementById('edit-income-btn');
+            const statusLabel = document.getElementById('income-status-label');
+            if(mId === 'all') {
+                editBtn.classList.add('hidden');
+                statusLabel.textContent = "TOTAL DA FAMÍLIA";
+            } else {
+                editBtn.classList.remove('hidden');
+                const member = members.find(x => x.id === mId);
+                const isManual = member?.monthlySalaries && member.monthlySalaries[`${mYear}-${mMonth}`] !== undefined;
+                statusLabel.textContent = isManual ? "Renda Manual (Este Mês)" : "Renda Base (Padrão)";
+            }
+
             document.getElementById('members-list').innerHTML = '';
             document.getElementById('expense-member').innerHTML = '<option value="">Selecione...</option>';
             document.getElementById('filter-member').innerHTML = '<option value="all">TODOS</option>';
@@ -317,7 +360,15 @@
                 table.innerHTML += `<tr><td class="p-3 uppercase font-bold text-slate-500">${e.memberName}</td><td class="p-3"><b>${e.description}</b><br><small class="text-indigo-400">${e.category || 'Geral'}</small></td><td class="p-3">${e.date.split('-').reverse().join('/')}</td><td class="p-3 text-right text-red-400">R$ ${e.value.toFixed(2)}</td><td class="p-3 text-center space-x-2"><button onclick="openEditExpense('${e.id}')" class="text-blue-400"><i class="fas fa-edit"></i></button><button onclick="deleteExpense('${e.id}')" class="text-red-400"><i class="fas fa-trash"></i></button></td></tr>`;
             });
 
-            const incomeTotal = mId === 'all' ? members.reduce((a,b)=>a+b.salary,0) : (members.find(x=>x.id===mId)?.salary || 0);
+            // Lógica de Renda ajustada para mensalidade
+            let incomeTotal = 0;
+            if(mId === 'all') {
+                incomeTotal = members.reduce((acc, m) => acc + getMemberSalary(m, mMonth, mYear), 0);
+            } else {
+                const m = members.find(x => x.id === mId);
+                incomeTotal = m ? getMemberSalary(m, mMonth, mYear) : 0;
+            }
+
             const balance = incomeTotal - totalSpent;
 
             document.getElementById('summary-income').textContent = `R$ ${incomeTotal.toLocaleString('pt-BR', {minimumFractionDigits: 2})}`;
@@ -363,6 +414,21 @@
 
         window.closeModal = (id) => document.getElementById(id).classList.add('hidden');
 
+        // ABRE MODAL DE RENDA MENSAL
+        window.openIncomeAdjustment = () => {
+            const mId = document.getElementById('filter-member').value;
+            const mMonth = document.getElementById('filter-month').value;
+            const mYear = document.getElementById('filter-year').value;
+            const member = members.find(x => x.id === mId);
+            
+            if(!member) return;
+
+            document.getElementById('income-adj-member-id').value = mId;
+            document.getElementById('income-modal-subtitle').textContent = `${member.name} - Referência: ${mMonth}/${mYear}`;
+            document.getElementById('income-adj-value').value = getMemberSalary(member, mMonth, mYear);
+            document.getElementById('income-modal').classList.remove('hidden');
+        };
+
         window.openEditExpense = (id) => {
             const e = expenses.find(x => x.id === id);
             document.getElementById('edit-member').innerHTML = members.map(m => `<option value="${m.id}" ${m.id === e.memberId ? 'selected' : ''}>${m.name}</option>`).join('');
@@ -385,8 +451,32 @@
 
         document.getElementById('add-member-form').onsubmit = (e) => {
             e.preventDefault();
-            members.push({id: Date.now().toString(), name: document.getElementById('member-name').value, salary: parseFloat(document.getElementById('member-salary').value), closingDay: document.getElementById('member-closing-day').value});
+            members.push({
+                id: Date.now().toString(), 
+                name: document.getElementById('member-name').value, 
+                salary: parseFloat(document.getElementById('member-salary').value), 
+                closingDay: document.getElementById('member-closing-day').value,
+                monthlySalaries: {} // Inicia objeto de rendas mensais
+            });
             render(); e.target.reset();
+        };
+
+        // SALVAR RENDA MENSAL
+        document.getElementById('edit-monthly-income-form').onsubmit = (e) => {
+            e.preventDefault();
+            const mId = document.getElementById('income-adj-member-id').value;
+            const newVal = parseFloat(document.getElementById('income-adj-value').value);
+            const mMonth = document.getElementById('filter-month').value;
+            const mYear = document.getElementById('filter-year').value;
+            const key = `${mYear}-${mMonth}`;
+
+            const idx = members.findIndex(x => x.id === mId);
+            if(!members[idx].monthlySalaries) members[idx].monthlySalaries = {};
+            
+            members[idx].monthlySalaries[key] = newVal;
+            
+            render();
+            closeModal('income-modal');
         };
 
         document.getElementById('add-expense-form').onsubmit = (e) => {
@@ -450,7 +540,6 @@
             doc.save("relatorio_financeiro.pdf");
         };
 
-        // Inicialização de filtros
         const now = new Date();
         document.getElementById('filter-month').innerHTML = ["Jan","Fev","Mar","Abr","Mai","Jun","Jul","Ago","Set","Out","Nov","Dez"].map((m, i) => `<option value="${i+1}" ${i+1 === now.getMonth()+1 ? 'selected' : ''}>${m}</option>`).join('');
         document.getElementById('filter-year').innerHTML = [2024, 2025, 2026, 2027].map(y => `<option value="${y}" ${y === now.getFullYear() ? 'selected' : ''}>${y}</option>`).join('');
@@ -460,5 +549,3 @@
     </script>
 </body>
 </html>
-
-
