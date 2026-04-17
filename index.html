@@ -534,11 +534,81 @@
             reader.readAsText(input.files[0]);
         };
         window.exportFilteredPDF = () => {
-            const { jsPDF } = window.jspdf; const doc = new jsPDF();
-            doc.text(`Relatorio Financeiro - An.Yoshi 2026`, 14, 15);
-            doc.autoTable({ head: [['Membro', 'Descricao', 'Data', 'Valor']], body: window.currentView.map(e => [e.memberName, e.description, e.date.split('-').reverse().join('/'), `R$ ${e.value.toFixed(2)}`]), startY: 20 });
-            doc.save("relatorio_financeiro.pdf");
-        };
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+    
+    // Configurações de Estilo (Inspirado no seu branding Indigo/Slate)
+    const primaryColor = [49, 46, 129]; // Indigo-900
+    const textColor = [30, 41, 59];    // Slate-800
+
+    // Título e Rodapé de Marca
+    doc.setFontSize(18);
+    doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
+    doc.text(`Controle Financeiro Familiar`, 14, 20);
+    
+    doc.setFontSize(10);
+    doc.setTextColor(100);
+    doc.text(`Gestão By: An.Yoshi 2026`, 14, 27);
+    doc.text(`Data do Relatório: ${new Date().toLocaleDateString('pt-BR')}`, 150, 27);
+
+    // --- SEÇÃO DE RESUMO ---
+    doc.setDrawColor(200);
+    doc.line(14, 32, 196, 32); // Linha divisória
+
+    const income = document.getElementById('summary-income').innerText;
+    const expense = document.getElementById('summary-expense').innerText;
+    const balance = document.getElementById('summary-balance').innerText;
+
+    doc.setFontSize(11);
+    doc.setTextColor(textColor[0], textColor[1], textColor[2]);
+    
+    doc.setFont(undefined, 'bold');
+    doc.text(`RESUMO DO PERÍODO:`, 14, 42);
+    
+    doc.setFont(undefined, 'normal');
+    doc.text(`Renda Disponível:`, 14, 50);
+    doc.setTextColor(16, 185, 129); // Emerald-500
+    doc.text(`${income}`, 55, 50);
+
+    doc.setTextColor(textColor[0], textColor[1], textColor[2]);
+    doc.text(`Gasto Total:`, 14, 57);
+    doc.setTextColor(239, 68, 68); // Red-500
+    doc.text(`${expense}`, 55, 57);
+
+    doc.setTextColor(textColor[0], textColor[1], textColor[2]);
+    doc.text(`Saldo Final:`, 14, 64);
+    doc.setFont(undefined, 'bold');
+    doc.setTextColor(balance.includes('-') ? 239 : 49, balance.includes('-') ? 68 : 46, balance.includes('-') ? 68 : 129);
+    doc.text(`${balance}`, 55, 64);
+
+    // --- INCLUSÃO DO GRÁFICO ---
+    const canvas = document.getElementById('categoryChart');
+    if (canvas) {
+        // Converte o canvas para imagem (PNG)
+        const chartImg = canvas.toDataURL('image/png', 1.0);
+        // Adiciona ao PDF: addImage(img, format, x, y, width, height)
+        doc.addImage(chartImg, 'PNG', 120, 35, 70, 40); 
+    }
+
+    // --- TABELA DE GASTOS ---
+    doc.autoTable({
+        head: [['MEMBRO', 'DESCRIÇÃO', 'DATA', 'VALOR']],
+        body: window.currentView.map(e => [
+            e.memberName.toUpperCase(), 
+            e.description, 
+            e.date.split('-').reverse().join('/'), 
+            `R$ ${e.value.toFixed(2)}`
+        ]),
+        startY: 80,
+        theme: 'striped',
+        headStyles: { fillColor: primaryColor },
+        styles: { fontSize: 9 }
+    });
+
+    // Nome do arquivo baseado na data
+    const fileName = `relatorio_yoshi_${new Date().toISOString().slice(0,10)}.pdf`;
+    doc.save(fileName);
+};
 
         const now = new Date();
         document.getElementById('filter-month').innerHTML = ["Jan","Fev","Mar","Abr","Mai","Jun","Jul","Ago","Set","Out","Nov","Dez"].map((m, i) => `<option value="${i+1}" ${i+1 === now.getMonth()+1 ? 'selected' : ''}>${m}</option>`).join('');
